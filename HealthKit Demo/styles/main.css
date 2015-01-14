@@ -13,11 +13,21 @@
 }
 
 /* DEMO VIEW STYLES */
-.demo .button {
+.demo .largebutton {
     margin: 0 auto;
     margin-bottom: 14px;
     display: block;
     width: 80%;
+}
+
+.demo .smallbuttons {
+  text-align: center;
+}
+
+.demo .smallbuttons .button {
+    margin-bottom: 14px;
+    margin-top: 14px;
+    width: 40%;
 }
 
 h3.hassubtitle {

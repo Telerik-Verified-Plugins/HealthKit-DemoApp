@@ -45,19 +45,35 @@
         data-model="app.demoService.viewModel">
 
         <div class="demo">
-            <h3 class="hassubtitle">TODO</h3>
+            <h3 class="hassubtitle">Check availability</h3>
             <div class="subtitle">
-              todo
+              If the configuration of your app is incorrect,
+              or this app is not used on iOS8, this method will return false.
             </div>
-            <button data-role="button" class="button" data-bind="click: todoFunctionname">TODO</button>
+            <button data-role="button" class="largebutton" data-bind="click: isAvailable">HealthKit available?</button>
 
             <br/>
-            <h3 class="hassubtitle">TODO</h3>
+            <h3 class="hassubtitle">Read basic data</h3>
             <div class="subtitle">
               todo
             </div>
-            <button data-role="button" class="button" data-bind="click: todoFunctionname2">TODO 2</button>
-        </div>        
+            <div class="smallbuttons">
+              <button data-role="button" class="button" data-bind="click: getBirthdate">Birthdate</button>
+              <button data-role="button" class="button" data-bind="click: getGender">Gender</button><br/>
+              <button data-role="button" class="button" data-bind="click: getHeight">Height</button>
+              <button data-role="button" class="button" data-bind="click: getWeight">Weight</button>
+            </div>
+
+            <h3 class="hassubtitle">Save basic data</h3>
+            <div class="subtitle">
+              Try saving different values and them reading them again.
+              Also, check the value and graph in your 'Health' app.
+            </div>
+            <div class="smallbuttons">
+              <button data-role="button" class="button" data-bind="click: setWeight80">Weight 80 kg</button>
+              <button data-role="button" class="button" data-bind="click: setWeight90">Weight 90 kg</button>
+            </div>
+      </div>        
     </div>
 
     <!--Layout-->
