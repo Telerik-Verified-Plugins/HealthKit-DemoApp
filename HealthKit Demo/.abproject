@@ -1,0 +1,37 @@
+{
+  "ProjectName": "HealthKit Demo",
+  "ProjectGuid": "a9aa1684-0c07-42e3-9d4a-7a70e5f558cc",
+  "projectVersion": 1,
+  "AppIdentifier": "com.telerik.HealthKitDemo",
+  "DisplayName": "HealthKit Demo",
+  "Author": "",
+  "Description": "",
+  "BundleVersion": "1.0",
+  "AndroidVersionCode": "1",
+  "iOSDeviceFamily": [
+    "1",
+    "2"
+  ],
+  "iOSBackgroundMode": [],
+  "ProjectTypeGuids": "{070BCB52-5A75-4F8C-A973-144AF0EAFCC9}",
+  "FrameworkVersion": "3.5.0",
+  "AndroidPermissions": [],
+  "DeviceOrientations": [
+    "Portrait",
+    "Landscape"
+  ],
+  "AndroidHardwareAcceleration": "false",
+  "iOSStatusBarStyle": "Default",
+  "Framework": "Cordova",
+  "WP8TileTitle": "",
+  "WP8Publisher": "",
+  "WP8Capabilities": [],
+  "WP8Requirements": [],
+  "WP8PublisherID": "{c32b0ec0-b2ca-4c79-9c52-9579477aebb4}",
+  "WP8ProductID": "{3b1eb62a-fc41-4be6-8cd4-322acd2d2e4b}",
+  "WP8SupportedResolutions": [
+    "ID_RESOLUTION_WVGA",
+    "ID_RESOLUTION_WXGA",
+    "ID_RESOLUTION_HD720P"
+  ]
+}
