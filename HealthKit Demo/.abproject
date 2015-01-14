@@ -2,10 +2,10 @@
   "ProjectName": "HealthKit Demo",
   "ProjectGuid": "a9aa1684-0c07-42e3-9d4a-7a70e5f558cc",
   "projectVersion": 1,
-  "AppIdentifier": "com.telerik.HealthKitDemo",
+  "AppIdentifier": "com.telerik.plugindemo.healthkit",
   "DisplayName": "HealthKit Demo",
-  "Author": "",
-  "Description": "",
+  "Author": "Telerik",
+  "Description": "HealthKit Demo",
   "BundleVersion": "1.0",
   "AndroidVersionCode": "1",
   "iOSDeviceFamily": [
@@ -33,5 +33,13 @@
     "ID_RESOLUTION_WVGA",
     "ID_RESOLUTION_WXGA",
     "ID_RESOLUTION_HD720P"
+  ],
+  "CorePlugins": [
+    "org.apache.cordova.console",
+    "org.apache.cordova.device",
+    "org.apache.cordova.dialogs",
+    "org.apache.cordova.splashscreen",
+    "org.apache.cordova.statusbar",
+    "org.apache.cordova.vibration"
   ]
 }
