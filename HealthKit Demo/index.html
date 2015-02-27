@@ -10,11 +10,6 @@
     <script src="kendo/js/jquery.min.js"></script>
     <script src="kendo/js/kendo.mobile.min.js"></script>
 
-    <script>
-      window.onerror = function(a,b,c) {
-        alert(a + ", " + b + ", " + c);
-      }
-    </script>
     <script src="scripts/demo.js"></script>
     <script src="scripts/app.js"></script>
 </head>
@@ -84,6 +79,7 @@
             <h3>Advanced features</h3>
             <button data-role="button" class="largebutton" data-bind="click: querySampleType">Query anything, like the recent stepcount</button>
             <button data-role="button" class="largebutton" data-bind="click: saveWorkout">Save a workout (1 hour cycling)</button>
+            <button data-role="button" class="largebutton" data-bind="click: findAllWorkouts">Find all workouts</button>
       </div>        
     </div>
 

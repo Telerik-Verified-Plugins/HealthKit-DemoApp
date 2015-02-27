@@ -145,6 +145,18 @@
           }
         },
 
+        findAllWorkouts: function () {
+          if (!this.checkSimulator()) {
+            window.plugins.healthkit.findWorkouts(
+              {
+                // no params supported yet
+              },
+              this.onSuccess,
+              this.onError
+            )
+          }
+        },
+
         onSuccess: function (result) {
           alert(result == null ? "OK" : JSON.stringify(result));
         },

@@ -1,5 +1,6 @@
 #import "HealthKit.h"
 #import "HKHealthStore+AAPLExtensions.h"
+#import "WorkoutActivityConversion.h"
 #import <Cordova/CDV.h>
 
 @implementation HealthKit
@@ -78,10 +79,9 @@
   NSString *activityType = [args objectForKey:@"activityType"];
   NSString *quantityType = [args objectForKey:@"quantityType"]; // TODO verify this value
   
-  // TODO check validity of this enum
-  //  HKWorkoutActivityType activityTypeEnum = HKWorkoutActivityTypeCycling;
-  HKWorkoutActivityType activityTypeEnum = (HKWorkoutActivityType) activityType;
+  HKWorkoutActivityType activityTypeEnum = [WorkoutActivityConversion convertStringToHKWorkoutActivityType:activityType];
   
+  BOOL requestReadPermission = [args objectForKey:@"requestReadPermission"] == nil ? YES : [[args objectForKey:@"requestReadPermission"] boolValue];
   
   // optional energy
   NSNumber *energy = [args objectForKey:@"energy"];
@@ -127,9 +127,8 @@
     return;
   }
   
-  
   NSSet *types = [NSSet setWithObjects:[HKWorkoutType workoutType], [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierActiveEnergyBurned], [HKQuantityType quantityTypeForIdentifier:quantityType], nil];
-  [self.healthStore requestAuthorizationToShareTypes:types readTypes:nil completion:^(BOOL success, NSError *error) {
+  [self.healthStore requestAuthorizationToShareTypes:types readTypes:requestReadPermission ? types : nil completion:^(BOOL success, NSError *error) {
     if (!success) {
       dispatch_sync(dispatch_get_main_queue(), ^{
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:error.localizedDescription];
@@ -192,7 +191,7 @@
   }
   
   NSSet *types = [NSSet setWithObjects:[HKWorkoutType workoutType], nil];
-  [self.healthStore requestAuthorizationToShareTypes:types readTypes:types completion:^(BOOL success, NSError *error) {
+  [self.healthStore requestAuthorizationToShareTypes:nil readTypes:types completion:^(BOOL success, NSError *error) {
     if (!success) {
       dispatch_sync(dispatch_get_main_queue(), ^{
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:error.localizedDescription];
@@ -214,11 +213,17 @@
           NSMutableArray *finalResults = [[NSMutableArray alloc] initWithCapacity:results.count];
           
           for (HKWorkout *workout in results) {
+            NSString *workoutActivity = [WorkoutActivityConversion convertHKWorkoutActivityTypeToString:workout.workoutActivityType];
+//            HKQuantity *teb = workout.totalEnergyBurned.description;
+//            HKQuantity *td = [workout.totalDistance.description;
             NSMutableDictionary *entry = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
-                                          [NSNumber numberWithDouble:workout.duration], @"duration",
-                                          [df stringFromDate:workout.startDate], @"startDate",
-                                          [df stringFromDate:workout.endDate], @"endDate",
-                                          nil];
+                                            [NSNumber numberWithDouble:workout.duration], @"duration",
+                                            [df stringFromDate:workout.startDate], @"startDate",
+                                            [df stringFromDate:workout.endDate], @"endDate",
+                                            workout.source.bundleIdentifier, @"sourceBundleId",
+                                            workoutActivity, @"activityType",
+                                            nil
+                                          ];
             
             [finalResults addObject:entry];
           }
@@ -271,23 +276,24 @@
   NSString *unit = [args objectForKey:@"unit"];
   NSNumber *amount = [args objectForKey:@"amount"];
   NSDate *date = [NSDate dateWithTimeIntervalSince1970:[[args objectForKey:@"date"] doubleValue]];
-
+  BOOL requestReadPermission = [args objectForKey:@"requestReadPermission"] == nil ? YES : [[args objectForKey:@"requestReadPermission"] boolValue];
+  
   if (amount == nil) {
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"no amount was set"];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     return;
   }
-
+  
   HKUnit *preferredUnit = [self getUnit:unit:@"HKMassUnit"];
   if (preferredUnit == nil) {
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"invalid unit was passed"];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     return;
   }
-
+  
   HKQuantityType *weightType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierBodyMass];
   NSSet *requestTypes = [NSSet setWithObjects: weightType, nil];
-  [self.healthStore requestAuthorizationToShareTypes:requestTypes readTypes:requestTypes completion:^(BOOL success, NSError *error) {
+  [self.healthStore requestAuthorizationToShareTypes:requestTypes readTypes:requestReadPermission ? requestTypes : nil completion:^(BOOL success, NSError *error) {
     if (success) {
       HKQuantity *weightQuantity = [HKQuantity quantityWithUnit:preferredUnit doubleValue:[amount doubleValue]];
       HKQuantitySample *weightSample = [HKQuantitySample quantitySampleWithType:weightType quantity:weightQuantity startDate:date endDate:date];
@@ -317,19 +323,20 @@
 - (void) readWeight:(CDVInvokedUrlCommand*)command {
   NSMutableDictionary *args = [command.arguments objectAtIndex:0];
   NSString *unit = [args objectForKey:@"unit"];
-
+  BOOL requestWritePermission = [args objectForKey:@"requestWritePermission"] == nil ? YES : [[args objectForKey:@"requestWritePermission"] boolValue];
+  
   HKUnit *preferredUnit = [self getUnit:unit:@"HKMassUnit"];
   if (preferredUnit == nil) {
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"invalid unit was passed"];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     return;
   }
-
+  
   // Query to get the user's latest weight, if it exists.
   HKQuantityType *weightType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierBodyMass];
   NSSet *requestTypes = [NSSet setWithObjects: weightType, nil];
   // always ask for read and write permission if the app uses both, because granting read will remove write for the same type :(
-  [self.healthStore requestAuthorizationToShareTypes:requestTypes readTypes:requestTypes completion:^(BOOL success, NSError *error) {
+  [self.healthStore requestAuthorizationToShareTypes:requestWritePermission ? requestTypes : nil readTypes:requestTypes completion:^(BOOL success, NSError *error) {
     if (success) {
       [self.healthStore aapl_mostRecentQuantitySampleOfType:weightType predicate:nil completion:^(HKQuantity *mostRecentQuantity, NSDate *mostRecentDate, NSError *errorInner) {
         if (mostRecentQuantity) {
@@ -367,24 +374,24 @@
   NSString *unit = [args objectForKey:@"unit"];
   NSNumber *amount = [args objectForKey:@"amount"];
   NSDate *date = [NSDate dateWithTimeIntervalSince1970:[[args objectForKey:@"date"] doubleValue]];
-
-
+  BOOL requestReadPermission = [args objectForKey:@"requestReadPermission"] == nil ? YES : [[args objectForKey:@"requestReadPermission"] boolValue];
+  
   if (amount == nil) {
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"no amount was set"];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     return;
   }
-
+  
   HKUnit *preferredUnit = [self getUnit:unit:@"HKLengthUnit"];
   if (preferredUnit == nil) {
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"invalid unit was passed"];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     return;
   }
-
+  
   HKQuantityType *heightType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierHeight];
   NSSet *requestTypes = [NSSet setWithObjects: heightType, nil];
-  [self.healthStore requestAuthorizationToShareTypes:requestTypes readTypes:requestTypes completion:^(BOOL success, NSError *error) {
+  [self.healthStore requestAuthorizationToShareTypes:requestTypes readTypes:requestReadPermission ? requestTypes : nil completion:^(BOOL success, NSError *error) {
     if (success) {
       HKQuantity *heightQuantity = [HKQuantity quantityWithUnit:preferredUnit doubleValue:[amount doubleValue]];
       HKQuantitySample *heightSample = [HKQuantitySample quantitySampleWithType:heightType quantity:heightQuantity startDate:date endDate:date];
@@ -414,19 +421,20 @@
 - (void) readHeight:(CDVInvokedUrlCommand*)command {
   NSMutableDictionary *args = [command.arguments objectAtIndex:0];
   NSString *unit = [args objectForKey:@"unit"];
-
+  BOOL requestWritePermission = [args objectForKey:@"requestWritePermission"] == nil ? YES : [[args objectForKey:@"requestWritePermission"] boolValue];
+  
   HKUnit *preferredUnit = [self getUnit:unit:@"HKLengthUnit"];
   if (preferredUnit == nil) {
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"invalid unit was passed"];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     return;
   }
-
+  
   // Query to get the user's latest height, if it exists.
   HKQuantityType *heightType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierHeight];
   NSSet *requestTypes = [NSSet setWithObjects: heightType, nil];
   // always ask for read and write permission if the app uses both, because granting read will remove write for the same type :(
-  [self.healthStore requestAuthorizationToShareTypes:requestTypes readTypes:requestTypes completion:^(BOOL success, NSError *error) {
+  [self.healthStore requestAuthorizationToShareTypes:requestWritePermission ? requestTypes : nil readTypes:requestTypes completion:^(BOOL success, NSError *error) {
     if (success) {
       [self.healthStore aapl_mostRecentQuantitySampleOfType:heightType predicate:nil completion:^(HKQuantity *mostRecentQuantity, NSDate *mostRecentDate, NSError *errorInner) { // TODO use
         if (mostRecentQuantity) {
@@ -583,8 +591,7 @@
     NSDate *startDate = [NSDate dateWithTimeIntervalSince1970:[[args objectForKey:@"startDate"] longValue]];
     NSDate *endDate = [NSDate dateWithTimeIntervalSince1970:[[args objectForKey:@"endDate"] longValue]];
     NSString *sampleTypeString = [args objectForKey:@"sampleType"];
-
-
+    NSString *unitString = [args objectForKey:@"unit"];
     HKQuantityType *type = [HKObjectType quantityTypeForIdentifier:sampleTypeString];
 
 
@@ -599,6 +606,7 @@
     NSPredicate *predicate = [HKQuery predicateForSamplesWithStartDate:startDate endDate:endDate options:HKQueryOptionStrictStartDate];
     HKStatisticsOptions sumOptions = HKStatisticsOptionCumulativeSum;
     HKStatisticsQuery *query;
+    HKUnit *unit = unitString!=nil ? [HKUnit unitFromString:unitString] : [HKUnit countUnit];
     query = [[HKStatisticsQuery alloc] initWithQuantityType:type
                                     quantitySamplePredicate:predicate
                                                     options:sumOptions
@@ -607,7 +615,7 @@
                                                               NSError *error)
              {
                  HKQuantity *sum = [result sumQuantity];
-                 CDVPluginResult* response = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDouble:[sum doubleValueForUnit:[HKUnit countUnit]]];
+                 CDVPluginResult* response = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDouble:[sum doubleValueForUnit:unit]];
                  [self.commandDelegate sendPluginResult:response callbackId:command.callbackId];
              }];
 
@@ -634,7 +642,7 @@
     NSPredicate *predicate = [HKQuery predicateForSamplesWithStartDate:startDate endDate:endDate options:HKQueryOptionStrictStartDate];
 
     NSSet *requestTypes = [NSSet setWithObjects: type, nil];
-    [self.healthStore requestAuthorizationToShareTypes:requestTypes readTypes:requestTypes completion:^(BOOL success, NSError *error) {
+    [self.healthStore requestAuthorizationToShareTypes:nil readTypes:requestTypes completion:^(BOOL success, NSError *error) {
       if (success) {
 
         NSString *endKey = HKSampleSortIdentifierEndDate;
