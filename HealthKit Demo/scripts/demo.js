@@ -157,6 +157,18 @@
           }
         },
 
+        checkAuthStatus: function () {
+          if (!this.checkSimulator()) {
+            window.plugins.healthkit.checkAuthStatus(
+              {
+                'type'  : 'HKQuantityTypeIdentifierHeight' // or any other HKObjectType
+              },
+              this.onSuccess,
+              this.onError
+            )
+          }
+        },
+
         onSuccess: function (result) {
           alert(result == null ? "OK" : JSON.stringify(result));
         },
