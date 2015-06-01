@@ -35,6 +35,7 @@
     "ID_RESOLUTION_HD720P"
   ],
   "CorePlugins": [
+    "com.telerik.plugins.healthkit@0.3.4",
     "org.apache.cordova.console",
     "org.apache.cordova.device",
     "org.apache.cordova.dialogs",
