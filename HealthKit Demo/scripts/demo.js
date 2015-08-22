@@ -30,6 +30,15 @@
             }
         },
 
+        getBloodType: function () {
+            if (!this.checkSimulator()) {
+              window.plugins.healthkit.readBloodType(
+                this.onSuccess,
+                this.onError
+              );
+            }
+        },
+
         getHeight: function () {
             if (!this.checkSimulator()) {
               window.plugins.healthkit.readHeight(
