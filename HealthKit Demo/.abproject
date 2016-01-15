@@ -5,8 +5,8 @@
   "AppIdentifier": "com.telerik.plugindemo.healthkit",
   "DisplayName": "HealthKit Demo",
   "Author": "Telerik",
-  "Description": "HealthKit Demo",
-  "BundleVersion": "1.0",
+  "Description": "HealthKit Plugin Demo",
+  "BundleVersion": "1.0.1",
   "AndroidVersionCode": "1",
   "iOSDeviceFamily": [
     "1",
@@ -35,7 +35,7 @@
     "ID_RESOLUTION_HD720P"
   ],
   "CorePlugins": [
-    "com.telerik.plugins.healthkit@0.3.10",
+    "com.telerik.plugins.healthkit@0.4.1",
     "cordova-plugin-console",
     "cordova-plugin-device",
     "cordova-plugin-dialogs",

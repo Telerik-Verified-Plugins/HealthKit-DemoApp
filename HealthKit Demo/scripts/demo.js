@@ -134,6 +134,22 @@
           }
         },
 
+        querySampleTypeAggregated : function () {
+          if (!this.checkSimulator()) {
+            window.plugins.healthkit.querySampleTypeAggregated (
+              {
+                'startDate': new Date(new Date().getTime() - 3*7*24*60*60*1000), // three weeks ago
+                'endDate': new Date(), // now
+			          'aggregation': 'week', // 'hour', 'week', 'year' or 'day', default 'day'
+                'sampleType': 'HKQuantityTypeIdentifierStepCount', // any HKQuantityType
+                'unit' : 'count' // make sure this is compatible with the sampleType
+              },
+              this.onSuccess,
+              this.onError
+            );
+          }
+        },
+
         saveWorkout: function () {
           if (!this.checkSimulator()) {
             window.plugins.healthkit.saveWorkout(
